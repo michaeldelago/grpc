@@ -3,6 +3,7 @@
 name: SBCL-Tests
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master ]
   pull_request:
@@ -25,7 +26,7 @@ jobs:
           sbcl --noinform --non-interactive --load "$GITHUB_WORKSPACE/quicklisp/setup.lisp" --eval '(ql-util:without-prompting (ql:add-to-init-file))'
 
       - name: Download repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: quicklisp/local-projects/grpc
 
@@ -50,6 +51,16 @@ jobs:
           cd $GITHUB_WORKSPACE/quicklisp/local-projects/grpc &&
           sudo make &&
           popd
+
+      - name: Build and install protobuf
+        run: |
+          git clone --recursive --depth 1 --branch 3.18.x https://github.com/google/protobuf /opt/protobuf-src
+          pushd /opt/protobuf-src
+          ./autogen.sh
+          .configure --prefix=/usr/local
+          make -j4
+          sudo make install
+          ldconfig
 
       - name: Install cl-protobufs (really only need protoc)
         run: |

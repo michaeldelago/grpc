@@ -3,6 +3,7 @@
 name: CCL-Tests
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master ]
   pull_request:
@@ -52,6 +53,16 @@ jobs:
           cd $GITHUB_WORKSPACE/quicklisp/local-projects/grpc &&
           sudo make &&
           popd
+
+      - name: Build and install protobuf
+        run: |
+          git clone --recursive --depth 1 --branch 3.18.x https://github.com/google/protobuf /opt/protobuf-src
+          pushd /opt/protobuf-src
+          ./autogen.sh
+          .configure --prefix=/usr/local
+          make -j4
+          sudo make install
+          ldconfig
 
       - name: Install cl-protobufs (really only need protoc)
         run: |
